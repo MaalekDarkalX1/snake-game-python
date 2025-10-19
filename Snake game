@@ -1,0 +1,508 @@
+#Snake Game
+import turtle
+import time
+import random
+
+delay = 0.1
+
+score1 = 0
+high_score1 = 0
+
+score_p1 = 0
+high_score_score_p1 = 0
+score_p2 = 0
+high_score_p2 = 0
+
+game_state = "menu"
+
+buttons = []
+
+last_mode = None
+
+wn = turtle.Screen()
+wn.title("Snake Game by @MaalekDarkal (Menu Enabled)")
+wn.bgcolor("green")
+wn.setup(width=600, height=700)
+wn.tracer(0)
+
+head = turtle.Turtle()
+head.speed(0)
+head.shape("square")
+head.color("black")
+head.penup()
+head.goto(-100,0)
+head.direction = "stop"
+
+head2 = turtle.Turtle()
+head2.speed(0)
+head2.shape("square")
+head2.color("blue")
+head2.penup()
+head2.goto(100,0)
+head2.direction = "stop"
+
+food = turtle.Turtle()
+food.speed(0)
+food.shape("circle")
+food.color("red")
+food.penup()
+food.goto(0,100)
+
+segments = []
+segments2 = []
+
+
+pen_single = turtle.Turtle()
+pen_single.hideturtle()
+pen_single.penup()
+pen_single.goto(0, 300)
+
+pen_multi_p1 = turtle.Turtle()
+pen_multi_p1.hideturtle()
+pen_multi_p1.penup()
+pen_multi_p1.goto(-200, 300)
+
+pen_multi_p2 = turtle.Turtle()
+pen_multi_p2.hideturtle()
+pen_multi_p2.penup()
+pen_multi_p2.goto(200, 300)
+
+ui_pen= turtle.Turtle()
+ui_pen.hideturtle()
+ui_pen.penup()
+
+pen = turtle.Turtle()
+pen.speed(0)
+pen.shape("square")
+pen.color("white")
+pen.penup()
+pen.hideturtle()
+pen.goto(0, 260)
+pen.write("Score: 0 High Score: 0", align="center", font=("courier", 24, "normal"))
+
+
+
+
+
+def go_up(): 
+    if head.direction != "down":
+        head.direction = "up"
+
+def go_down():
+    if head.direction != "up":
+        head.direction = "down"
+
+def go_left():
+    if head.direction != "right":
+        head.direction = "left"
+
+def go_right():
+    if head.direction != "left":
+        head.direction = "right"
+
+
+def move():
+    if head.direction == "up":
+        y = head.ycor()
+        head.sety(y + 20)
+
+    if head.direction == "down":
+        y = head.ycor()
+        head.sety(y - 20)
+
+    if head.direction == "left":
+        x = head.xcor()
+        head.setx(x - 20)
+
+    if head.direction == "right":
+        x = head.xcor()
+        head.setx(x + 20)
+
+
+def go_up2():
+    if head2.direction != "down":
+        head2.direction = "up"
+
+def go_down2():
+    if head2.direction != "up":
+        head2.direction = "down"
+
+def go_left2():
+    if head2.direction != "right":
+        head2.direction = "left"
+
+def go_right2():
+    if head2.direction != "left":
+        head2.direction = "right"
+
+def move2():
+    if head2.direction == "up":
+        y = head2.ycor()
+        head2.sety(y + 20)
+
+    if head2.direction == "down":
+        y = head2.ycor()
+        head2.sety(y - 20)
+
+    if head2.direction == "left":
+        x = head2.xcor()
+        head2.setx(x - 20)
+
+    if head2.direction == "right":
+        x = head2.xcor()
+        head2.setx(x + 20)
+
+
+
+wn.listen()
+wn.onkeypress(go_up, "w")
+wn.onkeypress(go_down, "s")
+wn.onkeypress(go_left, "a")
+wn.onkeypress(go_right, "d")
+
+wn.onkeypress(go_up2, "Up")
+wn.onkeypress(go_down2, "Down")
+wn.onkeypress(go_left2, "Left")
+wn.onkeypress(go_right2, "Right")
+
+def draw_button(x, y, w, h, text, callback, fill="lightgray", text_color="black"):
+    
+
+    btn = turtle.Turtle()
+    btn.hideturtle()
+    btn.penup()
+    btn.goto(x - w/2, y - h/2)
+    btn.pendown()
+    btn.fillcolor(fill)
+    btn.begin_fill()
+    
+    for _ in range(2):
+        btn.forward(w)
+        btn.left(90)
+        btn.forward(h)
+        btn.left(90)
+
+    btn.end_fill()
+    btn.penup()
+
+    btn.goto(x, y - 10)
+    btn.color(text_color)
+    btn.write(text, align="center", font=("Courier", 18, "bold"))
+
+    x1 = x - w/2
+    y1 = y - h/2
+    x2 = x + w/2
+    y2 = y + h/2
+    buttons.append((btn, x1, y1, x2, y2, callback))
+    return btn
+
+def clear_buttons():
+    global buttons
+    for b in buttons:
+        try:
+            b[0].clear()
+            b[0].hideturtle()
+        except:
+            pass
+    buttons = []
+
+def on_screen_click(x, y):
+    for (btn, x1, y1, x2, y2, callback) in buttons:
+        if x1 <= x <= x2 and y1 <= y <= y2:
+
+            callback()
+            break
+
+wn.onscreenclick(on_screen_click)
+
+def reset_snake1():
+    head.goto(-100, 0)
+    head.direction = "stop"
+    for seg in segments:
+        seg.goto(1000, 1000)
+    segments.clear()
+
+def reset_snake2():
+    head2.goto(100, 0)
+    head2.direction = "stop"
+    for seg in segments2:
+        seg.goto(1000, 1000)
+    segments.clear()
+
+def spawn_food():
+    x = random.randrange(-280, 280, 20)
+    y = random.randrange(-260, 260, 20)
+    food.goto(x, y)
+
+def go_menu():
+    global game_state, score1, score_p1, score_p2
+    game_state = "menu"
+    reset_snake1()
+    def rest_snake2():
+        head2.goto(100, 0)
+        head2.direction = "stop"
+        for seg in segments2:
+            seg.goto(1000, 1000)
+        segments2.clear()
+    spawn_food()
+    pen_single.clear()
+    pen_multi_p1.clear()
+    pen_multi_p2.clear()
+    ui_pen.clear()
+    show_main_menu()
+def quit_game():
+    wn.bye()
+
+def start_single():
+    global game_state, score1, last_mode, delay
+    score1 = 0
+    delay = 0.1
+    reset_snake1()
+    reset_snake2()
+    spawn_food()
+    pen_single.clear()
+    game_state = "single"
+    last_mode = "single"
+    clear_buttons()
+    ui_pen.clear()
+
+def start_multi():
+    global game_state, score_p1, score_p2, delay, last_mode
+    score_p1 = 0
+    score_p2 = 0
+    delay = 0.1
+    reset_snake1()
+    reset_snake2()
+    spawn_food()
+    pen_multi_p1.clear()
+    pen_multi_p2.clear()
+    game_state = "multi"
+    last_mode = "multi"
+    clear_buttons()
+    ui_pen.clear()
+
+def show_main_menu():
+    clear_buttons()
+    wn.bgcolor("green")
+    ui_pen.clear()
+    ui_pen.goto(0, 150)
+    ui_pen.write("SNAKE GAME", align="center", font=("Arial", 36, "bold"))
+    ui_pen.goto(0, 100)
+    ui_pen.write("Click a mode to begin", align="center", font=("Arial", 18, "normal"))
+
+    draw_button(0, 20, 300, 60, "Single Player", start_single)
+    draw_button(0, -60, 300, 60, "Multiplayer", start_multi)
+    draw_button(0, -140, 300, 60, "Quit Game", quit_game)
+
+
+def show_death_menu():
+    clear_buttons()
+    ui_pen.goto(0, 120)
+    ui_pen.write("You Died", align="center", font=("Arial", 28, "bold"))
+
+    draw_button(0, 40, 240, 50, "Restart", restart_current)
+    draw_button(0, -30, 240, 50, "Main Menu", go_menu)
+
+
+def restart_current():
+    clear_buttons()
+    ui_pen.clear()
+    if last_mode == "single":
+        start_single()
+    elif last_mode == "multi":
+        start_multi()
+    else:
+        go_menu()
+
+
+
+def update_single_score():
+    pen_single.clear()
+    pen_single.goto(0, 300)
+    pen_single.write("Score: {} High Score: {}".format(score1, high_score1),
+                     align="center", font=("Courier", 24, "normal"))
+    
+def update_multi_scores():
+    pen_multi_p1.clear()
+    pen_multi_p2.clear()
+
+    pen_multi_p1.goto(-200, 320)
+    pen_multi_p1.write("P1 Score: {} High: {}".format(score_p1, high_score_p1),
+                       align="center", font=("Courier", 18, "normal"))
+    pen_multi_p2.goto(200, 320)
+    pen_multi_p2.write("P2 Score: {}  High: {}".format(score_p2, high_score_p2),
+                       align="center", font=("Courier", 18, "normal"))
+    
+    
+show_main_menu()
+wn.update()
+
+
+while True:
+    wn.update()
+
+    if game_state == "menu":
+
+        time.sleep(0.02)
+        continue
+
+    if game_state == "single":
+
+        if head.xcor() > 290 or head.xcor() <-290 or head.ycor() > 290 or head.ycor() < -290:
+            time.sleep(1)
+
+            last_mode = "single"
+            game_state = "dead"
+            show_death_menu()
+            continue
+
+        if head.distance(food) < 20:
+            spawn_food()
+            new_segment = turtle.Turtle()
+            new_segment.speed(0)
+            new_segment.shape("square")
+            new_segment.color("grey")
+            new_segment.penup()
+            segments.append(new_segment)
+            delay -= 0.001
+            score1 += 10
+            if score1 > high_score1:
+                high_score1 = score1
+            update_single_score()
+
+        for index in range (len(segments) - 1, 0, - 1):
+            x = segments[index - 1].xcor()
+            y = segments[index - 1].ycor()
+            segments[index].goto(x, y)
+
+        if len(segments) > 0:
+            x = head.xcor()
+            y = head.ycor()
+            segments[0].goto(x, y)
+
+        move()
+
+        for seg in segments:
+            if seg.distance(head) < 20:
+                time.sleep(1)
+                last_mode = "single"
+                game_state = "dead"
+                show_death_menu()
+                break
+
+        time.sleep(delay)
+        continue
+
+
+    if game_state == "multi":
+
+        if head.xcor() > 290 or head.xcor() < -290 or head.ycor() > 290 or head.ycor() < -290:
+
+            time.sleep(1)
+            reset_snake1()
+
+            last_mode = "multi"
+            game_state = "dead"
+            show_death_menu()
+            continue
+
+        if head2.xcor() > 290 or head2.xcor() < -290 or head2.ycor() > 290 or head2.ycor() < -290:
+                time.sleep(1)
+                reset_snake2()
+                last_mode = "multi"
+                game_state = "dead"
+                show_death_menu()
+                continue
+        
+
+        if head.distance(food) < 20:
+            spawn_food()
+            new_segment = turtle.Turtle()
+            new_segment.speed(0)
+            new_segment.shape("square")
+            new_segment.color("grey")
+            new_segment.penup()
+            segments.append(new_segment)
+            delay -= 0.001
+            score_p1 += 10
+            if score_p1 > high_score_p1:
+                high_score_p1 = score_p1
+            update_multi_scores()
+
+        if head2.distance(food) < 20:
+            spawn_food()
+            new_segment2 = turtle.Turtle()
+            new_segment2.speed(0)
+            new_segment2.shape("square")
+            new_segment2.color("grey")
+            new_segment2.penup()
+            segments2.append(new_segment2)
+            delay -= 0.001
+            score_p2 += 10
+            if score_p2 > high_score_p2:
+                high_score_p2 = score_p2
+            update_multi_scores()
+
+
+        for index in range(len(segments) - 1, 0, -1):
+            x = segments[index - 1].xcor()
+            y = segments[index - 1].ycor()
+            segments[index].goto(x, y)
+
+        for index in range(len(segments2) -1, 0, -1):
+            x = segments2[index - 1].xcor()
+            y = segments2[index - 1].ycor()
+            segments2[index].goto(x, y)
+        
+        if len(segments) > 0:
+            x = head.xcor()
+            y = head.ycor()
+            segments[0].goto(x, y)
+
+        if len(segments2) > 0:
+            x = head2.xcor()
+            y = head2.ycor()
+            segments2[0].goto(x, y)
+
+        move()
+        move2()
+
+
+        for seg in segments:
+            if seg.distance(head) < 20:
+                time.sleep(1)
+                reset_snake1()
+                last_mode = "multi"
+                game_state = "dead"
+                show_death_menu()
+                break
+        
+        for seg2 in segments2:
+            if seg2.distance(head2) < 20:
+                time.sleep(1)
+                reset_snake2()
+                last_mode = "multi"
+                game_state = "dead"
+                show_death_menu()
+                break
+
+        if head.distance(head2) < 20:
+            time.sleep(1)
+            reset_snake1()
+            reset_snake2()
+            last_mode = "multi"
+            game_state = "dead"
+            show_death_menu()
+            continue
+
+
+    time.sleep(delay)
+    continue
+
+if game_state == "dead":
+
+    time.sleep(0.02)
+
+
+
+wn.mainloop()
